@@ -1,0 +1,26 @@
+# Xcode
+build/
+DerivedData/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods (nieużywane, ale na wszelki wypadek)
+Pods/
+
+# macOS
+.DS_Store
+
+# Simulator / archives
+*.ipa
+*.dSYM.zip
+*.dSYM
