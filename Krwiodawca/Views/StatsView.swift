@@ -3,10 +3,15 @@ import SwiftData
 import Charts
 
 struct StatsView: View {
+    @EnvironmentObject private var donorSettings: DonorSettings
     @Query(sort: \Donation.date) private var donations: [Donation]
 
+    private var hasAnyData: Bool {
+        !donations.isEmpty || donorSettings.totalBaselineCount > 0
+    }
+
     private var byComponent: [ComponentBreakdown] {
-        DonationStatistics.byComponent(donations)
+        DonationStatistics.byComponent(donations, donorSettings: donorSettings)
     }
 
     private var byYear: [YearlyBreakdown] {
@@ -20,7 +25,7 @@ struct StatsView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                if donations.isEmpty {
+                if !hasAnyData {
                     ContentUnavailableView(
                         "Brak danych",
                         systemImage: "chart.bar.xaxis",
@@ -108,5 +113,6 @@ struct StatsView: View {
 
 #Preview {
     StatsView()
+        .environmentObject(DonorSettings())
         .modelContainer(for: Donation.self, inMemory: true)
 }

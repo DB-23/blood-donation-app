@@ -4,6 +4,7 @@ import SwiftData
 struct AddDonationView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var donorSettings: DonorSettings
     @Query(sort: \Donation.date) private var allDonations: [Donation]
 
     private let editingDonation: Donation?
@@ -21,16 +22,24 @@ struct AddDonationView: View {
         allDonations.filter { $0.component == component && $0.id != editingDonation?.id }
     }
 
+    /// Najnowsza donacja tego samego składnika sprzed wybranej daty — realna albo,
+    /// jeśli nie ma wcześniejszej realnej, ze stanu początkowego dawcy.
+    private var effectivePreviousDate: Date? {
+        let realCandidate = otherDonationsOfSameComponent.filter { $0.date < date }.map(\.date).max()
+        let baselineCandidate = donorSettings.baseline(for: component).lastDonationDate.flatMap { $0 < date ? $0 : nil }
+        return [realCandidate, baselineCandidate].compactMap { $0 }.max()
+    }
+
     /// Ostrzeżenia o zbyt krótkim odstępie od sąsiadujących w czasie donacji tego samego składnika.
     private var intervalWarnings: [String] {
         let interval = EligibilityCalculator.minimumIntervalDays(for: component)
         let calendar = Calendar.current
         var warnings: [String] = []
 
-        if let previous = otherDonationsOfSameComponent.filter({ $0.date < date }).max(by: { $0.date < $1.date }) {
-            let days = calendar.dateComponents([.day], from: previous.date, to: date).day ?? 0
+        if let previous = effectivePreviousDate {
+            let days = calendar.dateComponents([.day], from: previous, to: date).day ?? 0
             if days < interval {
-                warnings.append("Od poprzedniej donacji (\(previous.date.formatted(date: .abbreviated, time: .omitted))) minęło tylko \(days) z wymaganych \(interval) dni.")
+                warnings.append("Od poprzedniej donacji (\(previous.formatted(date: .abbreviated, time: .omitted))) minęło tylko \(days) z wymaganych \(interval) dni.")
             }
         }
 
@@ -161,5 +170,6 @@ struct AddDonationView: View {
 
 #Preview {
     AddDonationView()
+        .environmentObject(DonorSettings())
         .modelContainer(for: Donation.self, inMemory: true)
 }

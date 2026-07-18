@@ -26,6 +26,16 @@ struct ProfileSettingsView: View {
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
+
+                Section {
+                    NavigationLink {
+                        BaselineSettingsView()
+                    } label: {
+                        Label("Stan początkowy", systemImage: "clock.arrow.circlepath")
+                    }
+                } footer: {
+                    Text("Masz już za sobą donacje sprzed instalacji aplikacji? Wprowadź tu dotychczasowy dorobek zamiast dodawać każdą z osobna.")
+                }
             }
             .navigationTitle("Profil")
             .toolbar {

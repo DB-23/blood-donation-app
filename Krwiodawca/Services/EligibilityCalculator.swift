@@ -34,14 +34,19 @@ enum EligibilityCalculator {
         for component: BloodComponentType,
         donations: [Donation],
         sex: DonorSex,
-        referenceDate: Date = .now
+        referenceDate: Date = .now,
+        baselineLastDonationDate: Date? = nil
     ) -> EligibilityStatus {
         let calendar = Calendar.current
         let componentDonations = donations
             .filter { $0.component == component }
             .sorted { $0.date > $1.date }
 
-        let lastDate = componentDonations.first?.date
+        // Data ostatniej donacji z realnych wpisów lub, jeśli jest nowsza,
+        // z ręcznie wprowadzonego stanu początkowego (patrz DonorSettings.baselines).
+        // Roczny limit poniżej liczy tylko realne wpisy — stan początkowy nie ma
+        // rozbicia na poszczególne donacje w oknie 365 dni, to uproszczenie.
+        let lastDate = [componentDonations.first?.date, baselineLastDonationDate].compactMap { $0 }.max()
         let interval = minimumIntervalDays(for: component)
         let limit = annualLimit(for: component, sex: sex)
 
@@ -71,9 +76,20 @@ enum EligibilityCalculator {
         )
     }
 
-    static func allStatuses(donations: [Donation], sex: DonorSex, referenceDate: Date = .now) -> [EligibilityStatus] {
+    static func allStatuses(
+        donations: [Donation],
+        sex: DonorSex,
+        referenceDate: Date = .now,
+        donorSettings: DonorSettings? = nil
+    ) -> [EligibilityStatus] {
         BloodComponentType.allCases.map {
-            status(for: $0, donations: donations, sex: sex, referenceDate: referenceDate)
+            status(
+                for: $0,
+                donations: donations,
+                sex: sex,
+                referenceDate: referenceDate,
+                baselineLastDonationDate: donorSettings?.baseline(for: $0).lastDonationDate
+            )
         }
     }
 }

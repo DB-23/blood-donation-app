@@ -8,7 +8,13 @@ struct DashboardView: View {
     @State private var showingProfileSheet = false
 
     private var eligibilityStatuses: [EligibilityStatus] {
-        EligibilityCalculator.allStatuses(donations: donations, sex: donorSettings.sex)
+        EligibilityCalculator.allStatuses(donations: donations, sex: donorSettings.sex, donorSettings: donorSettings)
+    }
+
+    /// Data ostatniej donacji — realnej lub, jeśli nowsza, ze stanu początkowego.
+    private var lastDonationDate: Date? {
+        let baselineDates = BloodComponentType.allCases.compactMap { donorSettings.baseline(for: $0).lastDonationDate }
+        return ([donations.first?.date] + baselineDates).compactMap { $0 }.max()
     }
 
     /// Najbliższy termin, w którym można oddać krew lub dowolny jej składnik.
@@ -53,25 +59,25 @@ struct DashboardView: View {
                         )
                         StatCard(
                             title: "Łącznie donacji",
-                            value: "\(donations.count)",
+                            value: "\(DonationStatistics.totalDonationsCount(donations, donorSettings: donorSettings))",
                             icon: "drop.fill"
                         )
                         StatCard(
                             title: "Oddana krew",
-                            value: String(format: "%.1f l", DonationStatistics.totalLiters(donations)),
+                            value: String(format: "%.1f l", DonationStatistics.totalLiters(donations, donorSettings: donorSettings)),
                             icon: "chart.bar.fill",
                             tint: .orange
                         )
                         StatCard(
                             title: "Uratowane osoby",
-                            value: "~\(DonationStatistics.estimatedLivesHelped(donations))",
+                            value: "~\(DonationStatistics.estimatedLivesHelped(donations, donorSettings: donorSettings))",
                             subtitle: "szacunkowo",
                             icon: "heart.fill",
                             tint: .pink
                         )
                         StatCard(
                             title: "Ostatnia donacja",
-                            value: donations.first.map { $0.date.formatted(date: .abbreviated, time: .omitted) } ?? "—",
+                            value: lastDonationDate.map { $0.formatted(date: .abbreviated, time: .omitted) } ?? "—",
                             icon: "calendar",
                             tint: .blue
                         )

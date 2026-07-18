@@ -6,8 +6,8 @@ struct AchievementsView: View {
     @Query private var donations: [Donation]
     @State private var selectedAchievement: Achievement?
 
-    private var totalDonations: Int { donations.count }
-    private var totalLiters: Double { DonationStatistics.totalLiters(donations) }
+    private var totalDonations: Int { DonationStatistics.totalDonationsCount(donations, donorSettings: donorSettings) }
+    private var totalLiters: Double { DonationStatistics.totalLiters(donations, donorSettings: donorSettings) }
 
     private var achievements: [Achievement] {
         AchievementsCatalog.achievements(for: donorSettings.sex)

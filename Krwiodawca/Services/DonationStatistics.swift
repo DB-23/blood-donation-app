@@ -15,28 +15,37 @@ struct YearlyBreakdown: Identifiable {
 }
 
 /// Wylicza zagregowane statystyki na podstawie listy donacji.
+/// Funkcje przyjmujące opcjonalny `donorSettings` doliczają do wyniku
+/// ręcznie wprowadzony stan początkowy (donacje sprzed instalacji aplikacji).
 enum DonationStatistics {
-    static func totalVolumeMl(_ donations: [Donation]) -> Int {
-        donations.reduce(0) { $0 + $1.volumeMl }
+    static func totalVolumeMl(_ donations: [Donation], donorSettings: DonorSettings? = nil) -> Int {
+        donations.reduce(0) { $0 + $1.volumeMl } + (donorSettings?.totalBaselineVolumeMl ?? 0)
     }
 
-    static func totalLiters(_ donations: [Donation]) -> Double {
-        Double(totalVolumeMl(donations)) / 1000.0
+    static func totalDonationsCount(_ donations: [Donation], donorSettings: DonorSettings? = nil) -> Int {
+        donations.count + (donorSettings?.totalBaselineCount ?? 0)
+    }
+
+    static func totalLiters(_ donations: [Donation], donorSettings: DonorSettings? = nil) -> Double {
+        Double(totalVolumeMl(donations, donorSettings: donorSettings)) / 1000.0
     }
 
     /// Szacowana liczba osób, którym mogła pomóc oddana krew pełna
     /// (przyjmując, że jedna donacja krwi pełnej może uratować do 3 osób).
-    static func estimatedLivesHelped(_ donations: [Donation]) -> Int {
-        donations.filter { $0.component == .wholeBlood }.count * 3
+    static func estimatedLivesHelped(_ donations: [Donation], donorSettings: DonorSettings? = nil) -> Int {
+        let wholeBloodCount = donations.filter { $0.component == .wholeBlood }.count
+            + (donorSettings?.baseline(for: .wholeBlood).count ?? 0)
+        return wholeBloodCount * 3
     }
 
-    static func byComponent(_ donations: [Donation]) -> [ComponentBreakdown] {
+    static func byComponent(_ donations: [Donation], donorSettings: DonorSettings? = nil) -> [ComponentBreakdown] {
         BloodComponentType.allCases.map { component in
             let matching = donations.filter { $0.component == component }
+            let baseline = donorSettings?.baseline(for: component)
             return ComponentBreakdown(
                 component: component,
-                count: matching.count,
-                volumeMl: matching.reduce(0) { $0 + $1.volumeMl }
+                count: matching.count + (baseline?.count ?? 0),
+                volumeMl: matching.reduce(0) { $0 + $1.volumeMl } + (baseline?.volumeMl ?? 0)
             )
         }
     }
