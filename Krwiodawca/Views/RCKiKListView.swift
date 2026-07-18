@@ -22,13 +22,27 @@ struct RCKiKListView: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
 
-                    Button {
-                        navigate(to: center)
-                    } label: {
-                        Label("Nawiguj", systemImage: "location.fill")
+                    HStack(spacing: 10) {
+                        Button {
+                            navigate(to: center)
+                        } label: {
+                            Label("Nawiguj", systemImage: "location.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .tint(.red)
+
+                        if let websiteURL = center.websiteURL {
+                            Button {
+                                openURL(websiteURL)
+                            } label: {
+                                Label("Strona internetowa", systemImage: "safari.fill")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .tint(.blue)
+                        }
                     }
                     .buttonStyle(.bordered)
-                    .tint(.red)
+                    .controlSize(.small)
                 }
                 .padding(.vertical, 6)
             }
