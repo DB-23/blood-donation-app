@@ -4,6 +4,7 @@ import SwiftData
 struct AddDonationView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Query(sort: \Donation.date) private var allDonations: [Donation]
 
     private let editingDonation: Donation?
 
@@ -13,6 +14,35 @@ struct AddDonationView: View {
     @State private var location: String
     @State private var notes: String
     @State private var showingLocationPicker = false
+    @State private var showingIntervalConfirmation = false
+
+    /// Donacje tego samego składnika krwi co formularz, z pominięciem edytowanego rekordu.
+    private var otherDonationsOfSameComponent: [Donation] {
+        allDonations.filter { $0.component == component && $0.id != editingDonation?.id }
+    }
+
+    /// Ostrzeżenia o zbyt krótkim odstępie od sąsiadujących w czasie donacji tego samego składnika.
+    private var intervalWarnings: [String] {
+        let interval = EligibilityCalculator.minimumIntervalDays(for: component)
+        let calendar = Calendar.current
+        var warnings: [String] = []
+
+        if let previous = otherDonationsOfSameComponent.filter({ $0.date < date }).max(by: { $0.date < $1.date }) {
+            let days = calendar.dateComponents([.day], from: previous.date, to: date).day ?? 0
+            if days < interval {
+                warnings.append("Od poprzedniej donacji (\(previous.date.formatted(date: .abbreviated, time: .omitted))) minęło tylko \(days) z wymaganych \(interval) dni.")
+            }
+        }
+
+        if let next = otherDonationsOfSameComponent.filter({ $0.date > date }).min(by: { $0.date < $1.date }) {
+            let days = calendar.dateComponents([.day], from: date, to: next.date).day ?? 0
+            if days < interval {
+                warnings.append("Do kolejnej donacji (\(next.date.formatted(date: .abbreviated, time: .omitted))) jest tylko \(days) z wymaganych \(interval) dni.")
+            }
+        }
+
+        return warnings
+    }
 
     init(editing donation: Donation? = nil) {
         self.editingDonation = donation
@@ -39,6 +69,18 @@ struct AddDonationView: View {
                     }
 
                     DatePicker("Data", selection: $date, in: ...Date.now, displayedComponents: .date)
+                }
+
+                if !intervalWarnings.isEmpty {
+                    Section {
+                        ForEach(intervalWarnings, id: \.self) { warning in
+                            Label(warning, systemImage: "exclamationmark.triangle.fill")
+                                .font(.subheadline)
+                                .foregroundStyle(.orange)
+                        }
+                    } footer: {
+                        Text("Minimalny odstęp dla \(component.rawValue.lowercased()) wynosi \(EligibilityCalculator.minimumIntervalDays(for: component)) dni. Sprawdź datę — jeśli jest prawidłowa, i tak będziesz mógł/mogła zapisać donację.")
+                    }
                 }
 
                 Section("Szczegóły") {
@@ -81,10 +123,28 @@ struct AddDonationView: View {
             .sheet(isPresented: $showingLocationPicker) {
                 LocationPickerView(selection: $location)
             }
+            .confirmationDialog(
+                "Zbyt krótki odstęp między donacjami",
+                isPresented: $showingIntervalConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Zapisz mimo to", role: .destructive) { performSave() }
+                Button("Anuluj", role: .cancel) { }
+            } message: {
+                Text(intervalWarnings.joined(separator: "\n"))
+            }
         }
     }
 
     private func save() {
+        guard intervalWarnings.isEmpty else {
+            showingIntervalConfirmation = true
+            return
+        }
+        performSave()
+    }
+
+    private func performSave() {
         if let editingDonation {
             editingDonation.date = date
             editingDonation.component = component
