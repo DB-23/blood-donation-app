@@ -11,6 +11,32 @@ struct DashboardView: View {
         EligibilityCalculator.allStatuses(donations: donations, sex: donorSettings.sex)
     }
 
+    /// Najbliższy termin, w którym można oddać krew lub dowolny jej składnik.
+    private var nextDonationDateText: String {
+        if eligibilityStatuses.contains(where: { $0.isEligibleNow }) {
+            return "Już dziś"
+        }
+        guard let earliest = eligibilityStatuses.compactMap({ $0.nextEligibleDate }).min() else {
+            return "—"
+        }
+        return earliest.formatted(date: .abbreviated, time: .omitted)
+    }
+
+    private var nextDonationSubtitle: String? {
+        if let eligibleNow = eligibilityStatuses.first(where: { $0.isEligibleNow }) {
+            return eligibleNow.component.rawValue
+        }
+        guard let soonest = eligibilityStatuses
+            .compactMap({ status -> (EligibilityStatus, Date)? in
+                guard let date = status.nextEligibleDate else { return nil }
+                return (status, date)
+            })
+            .min(by: { $0.1 < $1.1 }) else {
+            return nil
+        }
+        return soonest.0.component.rawValue
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -18,6 +44,13 @@ struct DashboardView: View {
                     header
 
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        StatCard(
+                            title: "Następna możliwa donacja",
+                            value: nextDonationDateText,
+                            subtitle: nextDonationSubtitle,
+                            icon: "calendar.badge.clock",
+                            tint: .green
+                        )
                         StatCard(
                             title: "Łącznie donacji",
                             value: "\(donations.count)",
