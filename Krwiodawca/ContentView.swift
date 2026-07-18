@@ -14,6 +14,9 @@ struct ContentView: View {
 
             HistoryView()
                 .tabItem { Label("Historia", systemImage: "list.bullet.rectangle") }
+
+            RCKiKListView()
+                .tabItem { Label("RCKiK", systemImage: "building.2.fill") }
         }
         .tint(.red)
     }
