@@ -35,7 +35,7 @@ struct RCKiKListView: View {
                             Button {
                                 openURL(websiteURL)
                             } label: {
-                                Label("Strona internetowa", systemImage: "safari.fill")
+                                Label("Strona", systemImage: "safari.fill")
                                     .frame(maxWidth: .infinity)
                             }
                             .tint(.blue)
