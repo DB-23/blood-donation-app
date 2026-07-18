@@ -12,6 +12,7 @@ struct AddDonationView: View {
     @State private var volumeMl: Int
     @State private var location: String
     @State private var notes: String
+    @State private var showingLocationPicker = false
 
     init(editing donation: Donation? = nil) {
         self.editingDonation = donation
@@ -49,7 +50,22 @@ struct AddDonationView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    TextField("Miejsce (np. RCKiK Warszawa)", text: $location)
+                    Button {
+                        showingLocationPicker = true
+                    } label: {
+                        HStack {
+                            Text("Miejsce")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            Text(location.isEmpty ? "Wybierz" : location)
+                                .foregroundStyle(location.isEmpty ? .secondary : .primary)
+                                .multilineTextAlignment(.trailing)
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+
                     TextField("Notatki", text: $notes, axis: .vertical)
                 }
             }
@@ -61,6 +77,9 @@ struct AddDonationView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Zapisz") { save() }
                 }
+            }
+            .sheet(isPresented: $showingLocationPicker) {
+                LocationPickerView(selection: $location)
             }
         }
     }
