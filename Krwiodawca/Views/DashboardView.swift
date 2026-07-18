@@ -63,9 +63,9 @@ struct DashboardView: View {
                             tint: .orange
                         )
                         StatCard(
-                            title: "Pomożono osobom",
+                            title: "Uratowane osoby",
                             value: "~\(DonationStatistics.estimatedLivesHelped(donations))",
-                            subtitle: "orientacyjnie",
+                            subtitle: "szacunkowo",
                             icon: "heart.fill",
                             tint: .pink
                         )

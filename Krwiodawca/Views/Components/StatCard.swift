@@ -25,14 +25,17 @@ struct StatCard: View {
             Text(value)
                 .font(.title2.bold())
                 .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
             Text(title)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            if let subtitle {
-                Text(subtitle)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-            }
+                .lineLimit(2, reservesSpace: true)
+            Text(subtitle ?? " ")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .lineLimit(1)
+                .opacity(subtitle == nil ? 0 : 1)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
