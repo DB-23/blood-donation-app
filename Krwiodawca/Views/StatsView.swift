@@ -46,6 +46,28 @@ struct StatsView: View {
                             .frame(height: 200)
                         }
 
+                        section(title: "Ilość oddanej krwi w czasie") {
+                            Chart(byYear) { item in
+                                BarMark(
+                                    x: .value("Rok", String(item.year)),
+                                    y: .value("Litry", Double(item.volumeMl) / 1000)
+                                )
+                                .foregroundStyle(Color.orange.gradient)
+                                .cornerRadius(6)
+                            }
+                            .chartYAxis {
+                                AxisMarks { value in
+                                    AxisGridLine()
+                                    AxisValueLabel {
+                                        if let liters = value.as(Double.self) {
+                                            Text("\(liters, specifier: "%.1f") l")
+                                        }
+                                    }
+                                }
+                            }
+                            .frame(height: 200)
+                        }
+
                         section(title: "Podział na składniki krwi") {
                             Chart(byComponent.filter { $0.count > 0 }) { item in
                                 SectorMark(
