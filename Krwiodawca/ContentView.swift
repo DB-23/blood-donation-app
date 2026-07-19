@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject private var donorSettings: DonorSettings
+
     var body: some View {
         TabView {
             DashboardView()
@@ -19,6 +21,7 @@ struct ContentView: View {
                 .tabItem { Label("RCKiK", systemImage: "building.2.fill") }
         }
         .tint(.red)
+        .preferredColorScheme(donorSettings.theme.colorScheme)
     }
 }
 

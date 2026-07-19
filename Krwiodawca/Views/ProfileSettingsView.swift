@@ -27,6 +27,14 @@ struct ProfileSettingsView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                Section("Wygląd") {
+                    Picker("Motyw", selection: $donorSettings.theme) {
+                        ForEach(AppTheme.allCases, id: \.self) { theme in
+                            Text(theme.rawValue).tag(theme)
+                        }
+                    }
+                }
+
                 Section {
                     NavigationLink {
                         BaselineSettingsView()

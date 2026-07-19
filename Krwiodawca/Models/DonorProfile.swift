@@ -1,9 +1,24 @@
 import Foundation
 import Combine
+import SwiftUI
 
 enum DonorSex: String, CaseIterable, Codable {
     case male = "Mężczyzna"
     case female = "Kobieta"
+}
+
+enum AppTheme: String, CaseIterable, Codable {
+    case system = "Systemowy"
+    case light = "Jasny"
+    case dark = "Ciemny"
+
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
+        }
+    }
 }
 
 /// Dorobek dawcy sprzed instalacji aplikacji (np. z papierowej legitymacji HDK),
@@ -26,6 +41,9 @@ final class DonorSettings: ObservableObject {
     @Published var bloodType: String {
         didSet { UserDefaults.standard.set(bloodType, forKey: "donorBloodType") }
     }
+    @Published var theme: AppTheme {
+        didSet { UserDefaults.standard.set(theme.rawValue, forKey: "donorTheme") }
+    }
     /// Klucz to `BloodComponentType.rawValue`.
     @Published var baselines: [String: ComponentBaseline] {
         didSet {
@@ -42,6 +60,8 @@ final class DonorSettings: ObservableObject {
         self.sex = DonorSex(rawValue: sexRaw) ?? .male
         self.name = UserDefaults.standard.string(forKey: "donorName") ?? ""
         self.bloodType = UserDefaults.standard.string(forKey: "donorBloodType") ?? "Nieznana"
+        let themeRaw = UserDefaults.standard.string(forKey: "donorTheme") ?? AppTheme.system.rawValue
+        self.theme = AppTheme(rawValue: themeRaw) ?? .system
         if let data = UserDefaults.standard.data(forKey: "donorBaselines"),
            let decoded = try? JSONDecoder().decode([String: ComponentBaseline].self, from: data) {
             self.baselines = decoded
