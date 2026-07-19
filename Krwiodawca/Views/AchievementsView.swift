@@ -69,33 +69,35 @@ private struct AchievementDetailView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                Image(systemName: isUnlocked ? achievement.icon : "lock.fill")
-                    .font(.system(size: 56))
-                    .foregroundStyle(isUnlocked ? .yellow : .secondary)
-                    .padding(.top, 24)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Image(systemName: isUnlocked ? achievement.icon : "lock.fill")
+                        .font(.system(size: 56))
+                        .foregroundStyle(isUnlocked ? .yellow : .secondary)
+                        .padding(.top, 24)
 
-                Text(achievement.title)
-                    .font(.title.bold())
+                    Text(achievement.title)
+                        .font(.title.bold())
+                        .multilineTextAlignment(.center)
 
-                Text(isUnlocked ? "Zdobyto!" : "Wymagane: \(achievement.requirementLabel)")
-                    .foregroundStyle(isUnlocked ? .green : .secondary)
+                    Text(isUnlocked ? "Zdobyto!" : "Wymagane: \(achievement.requirementLabel)")
+                        .foregroundStyle(isUnlocked ? .green : .secondary)
 
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Benefity")
-                        .font(.headline)
-                    ForEach(achievement.benefits, id: \.self) { benefit in
-                        Label(benefit, systemImage: "checkmark.circle")
-                            .font(.subheadline)
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Benefity")
+                            .font(.headline)
+                        ForEach(achievement.benefits, id: \.self) { benefit in
+                            Label(benefit, systemImage: "checkmark.circle")
+                                .font(.subheadline)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-
-                Spacer()
             }
-            .padding()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Zamknij") { dismiss() }
@@ -103,6 +105,7 @@ private struct AchievementDetailView: View {
             }
         }
         .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 }
 
